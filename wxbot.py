@@ -33,7 +33,7 @@ def message_handler(msg):
             getImageFlag = False
         if convertEmoji:
             msg.get_file(msg.file_name)
-            new_file_name = msg.file_name[-4:] + ".gif"
+            new_file_name = msg.file_name[:-4] + ".gif"
             os.rename(msg.file_name, new_file_name)
             msg.reply_image(new_file_name)
 

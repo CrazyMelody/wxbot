@@ -10,10 +10,9 @@ import time
 import EventMark
 import sys
 
-if len(sys.argv) > 1:
-    bot = Bot(cache_path=True,console_qr=True)
-else:
-    bot = Bot(cache_path=True)
+
+bot = Bot(cache_path=True,console_qr=len(sys.argv) > 1)
+
 bot.enable_puid('wxpy_puid.pkl')
 
 global EventMark
@@ -118,5 +117,7 @@ def message_handler(msg):
 
     print(msg)
 
-
-embed()
+if len(sys.argv)>1:
+    bot.join()
+else:
+    embed()

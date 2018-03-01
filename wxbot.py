@@ -10,7 +10,7 @@ import time
 import EventMark
 import sys
 
-if sys.argv > 1:
+if len(sys.argv) > 1:
     bot = Bot(cache_path=True,console_qr=True)
 else:
     bot = Bot(cache_path=True)

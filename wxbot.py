@@ -7,38 +7,40 @@ import requests
 import configparser
 import re
 import time
+import EventMark
+import sys
 
-bot = Bot(cache_path=True)
+if sys.argv > 1:
+    bot = Bot(cache_path=True,console_qr=True)
+else:
+    bot = Bot(cache_path=True)
 bot.enable_puid('wxpy_puid.pkl')
 
+global EventMark
 i = bot.friends().search("天选老司机")[0]
 group = bot.groups().search("6666666666")[0]
 i.send("hello")
 
-global imsg, getImageFlag, waimaiFlag, convertEmoji
-imsg = None
-getImageFlag, waimaiFlag, convertEmoji = False, False, False
-
 
 @bot.register([i, group])
 def message_handler(msg):
-    global imsg, getImageFlag, waimaiFlag, convertEmoji
-    imsg = msg
+    global EventMark
+    EventMark.imsg = msg
     config = configparser.RawConfigParser()
 
     if msg.type == 'Picture':
-        if getImageFlag:
+        if EventMark.getImageFlag:
             msg.get_file(msg.file_name)
             msg.reply_file(msg.file_name)
-            getImageFlag = False
-        if convertEmoji:
+            EventMark.getImageFlag = False
+        if EventMark.convertEmoji:
             msg.get_file(msg.file_name)
             new_file_name = msg.file_name[:-4] + ".gif"
             os.rename(msg.file_name, new_file_name)
             msg.reply_image(new_file_name)
 
     if msg.type == "Sharing":
-        if waimaiFlag:
+        if EventMark.waimaiFlag:
             config.read("bind.cfg")
             try:
                 if msg.member is not None:
@@ -46,23 +48,24 @@ def message_handler(msg):
                 else:
                     mobile = config.get("mobile", msg.sender.name)
                 resp = requests.post("http://101.132.113.122:3007/hongbao", data={"mobile": mobile, "url": msg.url})
-                print(resp)
-                waimaiFlag = False
-                return resp.json().get("message")
+                message = resp.json().get("message")
+                print(message)
+                EventMark.waimaiFlag = False
+                return message
             except configparser.NoOptionError:
                 return "还未绑定手机号"
     if msg.type == "Text":
         text = msg.text
         if text == "转图片":
-            getImageFlag = True
+            EventMark.getImageFlag = True
             return "转图片已开启，将自动将下一个表情转换为附件"
 
         if text == "转表情":
-            convertEmoji = True
+            EventMark.convertEmoji = True
             return "转表情已开启，将自动将下一个图片转为表情"
 
         if text == "外卖红包":
-            waimaiFlag = True
+            EventMark.waimaiFlag = True
             return "将自动领取下一个链接的外卖红包"
 
         if text == "饿了么外卖" or text == "美团外卖":
@@ -99,7 +102,7 @@ def message_handler(msg):
                     print(resp)
 
         if text.startswith("绑定手机:"):
-            mobile = text[5:len(text)]
+            mobile = text[5:]
             print("绑定手机号为：", mobile)
             config.read("bind.cfg")
             try:
